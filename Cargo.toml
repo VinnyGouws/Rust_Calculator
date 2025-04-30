@@ -7,3 +7,5 @@ edition = "2024"
 eframe = "0.24"
 meval = "0.2"
 winapi = { version = "0.3", features = ["winuser", "windef"] }
+log = "0.4"
+log4rs = "1.2"

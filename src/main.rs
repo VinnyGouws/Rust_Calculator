@@ -1,6 +1,17 @@
 use eframe::egui;
+use log::info;
+use log4rs;
+use std::error::Error;
+use std::fs;
 
-fn main() -> Result<(), eframe::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
+    info!(target: "calculator", "In Main");
+    // Make sure logs directory exists
+    fs::create_dir_all("logs")?;
+    
+    // Initialize logging
+    log4rs::init_file("log4rs.yaml", Default::default())?;
+    
     let mut options = eframe::NativeOptions::default();
     options.viewport = egui::ViewportBuilder::default().with_inner_size([350.0, 350.0]);
 
@@ -8,7 +19,9 @@ fn main() -> Result<(), eframe::Error> {
         "Calculator",
         options,
         Box::new(|cc| Box::new(MyApp::new(cc))),
-    )
+    )?;
+    
+    Ok(())
 }
 
 struct MyApp {
@@ -17,7 +30,9 @@ struct MyApp {
 }
 
 impl MyApp {
+    // Set the entry box
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        info!(target: "calculator", "In MyApp");
         Self {
             input: String::new(),
             result: 0.0,
@@ -25,16 +40,20 @@ impl MyApp {
     }
     
     fn add_to_input(&mut self, character: &str) {
+        info!(target: "calculator", "In add_to_input");
         self.input.push_str(character);
     }
     
     fn preprocess_expression(&self, expr: &str) -> String {
+        info!(target: "calculator", "In preprocess_expression");
         let mut result = String::new();
         let chars: Vec<char> = expr.chars().collect();
+
+        info!(target: "calculator", "Chars: {:?}", chars);
         
         for i in 0..chars.len() {
             result.push(chars[i]);
-            
+
             // If current char is a number and next char is an opening parenthesis,
             // insert an explicit multiplication operator
             if i + 1 < chars.len() && 
@@ -53,27 +72,35 @@ impl MyApp {
             // Handle cases like 3sin or 5cos (if we add trig functions later)
             // This would look similar to the number-parenthesis check above
         }
+
+        info!(target: "calculator", "Result: {}", result);
         
         result
     }
     
     fn calculate(&mut self) {
+        info!(target: "calculator", "In calculate");
         if !self.input.is_empty() {
             // Preprocess the expression to handle implicit multiplication
+            info!(target: "calculator", "Expression: {}", self.input);
             let processed_expr = self.preprocess_expression(&self.input);
             
+            info!(target: "calculator", "Processed expression: {}", processed_expr);
             // Using meval crate to evaluate the processed expression
             match meval::eval_str(&processed_expr) {
                 Ok(result) => {
                     self.result = result;
                     self.input = self.result.to_string();
+                    info!(target: "calculator", "Result: {}", self.result);
                 },
-                Err(_) => {
+                Err(e) => {
                     // Handle invalid expressions
                     self.input = "Error".to_string();
                     self.result = f64::NAN;
+                    info!(target: "calculator", "Error: {}", e);
                 }
             }
+        } else {
         }
     }
 }
