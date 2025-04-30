@@ -1,0 +1,9 @@
+[package]
+name = "Rust_Calculator"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.24"
+meval = "0.2"
+winapi = { version = "0.3", features = ["winuser", "windef"] }
