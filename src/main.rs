@@ -1,7 +1,9 @@
 use eframe::egui;
 
 fn main() -> Result<(), eframe::Error> {
-    let options = eframe::NativeOptions::default();
+    let mut options = eframe::NativeOptions::default();
+    options.viewport = egui::ViewportBuilder::default().with_inner_size([350.0, 350.0]);
+
     eframe::run_native(
         "Calculator",
         options,
@@ -41,7 +43,7 @@ impl eframe::App for MyApp {
             ui.text_edit_singleline(&mut self.input);
             
             // Button layout
-            let button_size = egui::vec2(40.0, 40.0);
+            let button_size = egui::vec2(60.0, 60.0);
             
             // Row 1: 7 8 9 +
             ui.horizontal(|ui| {
@@ -56,6 +58,10 @@ impl eframe::App for MyApp {
                 }
                 if ui.add(egui::Button::new("+").min_size(button_size)).clicked() {
                     self.add_to_input("+");
+                }
+                if ui.add(egui::Button::new("C").min_size(button_size)).clicked() {
+                    self.input.clear();
+                    self.result = 0.0;
                 }
             });
             
@@ -73,6 +79,9 @@ impl eframe::App for MyApp {
                 if ui.add(egui::Button::new("-").min_size(button_size)).clicked() {
                     self.add_to_input("-");
                 }
+                if ui.add(egui::Button::new("(").min_size(button_size)).clicked() {
+                    self.add_to_input("(");
+                }
             });
             
             // Row 3: 1 2 3 x
@@ -88,6 +97,9 @@ impl eframe::App for MyApp {
                 }
                 if ui.add(egui::Button::new("×").min_size(button_size)).clicked() {
                     self.add_to_input("*");
+                }
+                if ui.add(egui::Button::new(")").min_size(button_size)).clicked() {
+                    self.add_to_input(")");
                 }
             });
             
