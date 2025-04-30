@@ -28,10 +28,52 @@ impl MyApp {
         self.input.push_str(character);
     }
     
-    fn evaluate(&mut self) {
+    fn preprocess_expression(&self, expr: &str) -> String {
+        let mut result = String::new();
+        let chars: Vec<char> = expr.chars().collect();
+        
+        for i in 0..chars.len() {
+            result.push(chars[i]);
+            
+            // If current char is a number and next char is an opening parenthesis,
+            // insert an explicit multiplication operator
+            if i + 1 < chars.len() && 
+               (chars[i].is_digit(10) || chars[i] == ')') && 
+               chars[i+1] == '(' {
+                result.push('*');
+            }
+            
+            // Handle cases like )( - add multiplication between closing and opening parentheses
+            if i + 1 < chars.len() && 
+               chars[i] == ')' && 
+               chars[i+1] == '(' {
+                result.push('*');
+            }
+            
+            // Handle cases like 3sin or 5cos (if we add trig functions later)
+            // This would look similar to the number-parenthesis check above
+        }
+        
+        result
+    }
+    
+    fn calculate(&mut self) {
         if !self.input.is_empty() {
-            self.result = meval::eval_str(&self.input).unwrap_or(f64::NAN);
-            self.input = self.result.to_string();
+            // Preprocess the expression to handle implicit multiplication
+            let processed_expr = self.preprocess_expression(&self.input);
+            
+            // Using meval crate to evaluate the processed expression
+            match meval::eval_str(&processed_expr) {
+                Ok(result) => {
+                    self.result = result;
+                    self.input = self.result.to_string();
+                },
+                Err(_) => {
+                    // Handle invalid expressions
+                    self.input = "Error".to_string();
+                    self.result = f64::NAN;
+                }
+            }
         }
     }
 }
@@ -115,7 +157,7 @@ impl eframe::App for MyApp {
                     self.add_to_input("/");
                 }
                 if ui.add(egui::Button::new("=").min_size(button_size)).clicked() {
-                    self.evaluate();
+                    self.calculate();
                 }
             });
         });
